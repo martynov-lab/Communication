@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:auth/models/response_model.dart';
 import 'package:auth/models/user.dart';
+import 'package:auth/utils/app_utils.dart';
 import 'package:conduit/conduit.dart';
 import 'package:jaguar_jwt/jaguar_jwt.dart';
 
@@ -95,26 +96,18 @@ class AppAuthController extends ResourceController {
   @Operation.post("refresh")
   Future<Response> refreshToken(
       @Bind.path("refresh") String refreshToken) async {
-    final User fetchedUser = User();
-
-    try {} catch (error) {
+    try {
+      final int id = AppUtils.getIdFromToken(refreshToken);
+      await _updateTokens(id, managedContext);
+      final User? user = await managedContext.fetchObjectWithID<User>(id);
+      return Response.ok(AppResponseModel(
+        data: user?.backing.contents,
+        message: "Tokens updated successfully",
+      ));
+    } catch (error) {
       return Response.serverError(
           body: AppResponseModel(message: error.toString()));
     }
-
-    //connect DB
-    //find user
-    //check token
-    //fetch user
-
-    return Response.ok(
-      AppResponseModel(data: {
-        "id": fetchedUser.id,
-        "refreshToken": fetchedUser.refreshToken,
-        "accessToken": fetchedUser.accessToken,
-      }, message: "successful token update")
-          .toJson(),
-    );
   }
 
   Map<String, dynamic> _getTokens(int id) {
