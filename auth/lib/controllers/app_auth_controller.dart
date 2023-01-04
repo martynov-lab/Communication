@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:auth/models/response_model.dart';
 import 'package:auth/models/user.dart';
+import 'package:auth/utils/app_constants.dart';
+import 'package:auth/utils/app_response.dart';
 import 'package:auth/utils/app_utils.dart';
 import 'package:conduit/conduit.dart';
 import 'package:jaguar_jwt/jaguar_jwt.dart';
@@ -36,16 +38,15 @@ class AppAuthController extends ResourceController {
         await _updateTokens(findUser.id ?? -1, managedContext);
         final User? newUser =
             await managedContext.fetchObjectWithID<User>(findUser.id);
-        return Response.ok(AppResponseModel(
-          data: newUser?.backing.contents,
+        return AppResponse.ok(
+          body: newUser?.backing.contents,
           message: "Autharization success",
-        ));
+        );
       } else {
         throw QueryException.conflict("Invalid password", []);
       }
-    } on QueryException catch (error) {
-      return Response.serverError(
-          body: AppResponseModel(message: error.message));
+    } catch (error) {
+      return AppResponse.serverError(error, message: 'Authorization error');
     }
   }
 
@@ -73,14 +74,10 @@ class AppAuthController extends ResourceController {
         await _updateTokens(id, transaction);
       });
       final userData = await managedContext.fetchObjectWithID<User>(id);
-      return Response.ok(
-        AppResponseModel(
-            data: userData?.backing.contents,
-            message: "Successful registration"),
-      );
-    } on QueryException catch (error) {
-      return Response.serverError(
-          body: AppResponseModel(message: error.message));
+      return AppResponse.ok(
+          body: userData?.backing.contents, message: "Successful registration");
+    } catch (error) {
+      return AppResponse.serverError(error, message: 'Registranion error');
     }
   }
 
@@ -98,21 +95,25 @@ class AppAuthController extends ResourceController {
       @Bind.path("refresh") String refreshToken) async {
     try {
       final int id = AppUtils.getIdFromToken(refreshToken);
-      await _updateTokens(id, managedContext);
       final User? user = await managedContext.fetchObjectWithID<User>(id);
-      return Response.ok(AppResponseModel(
-        data: user?.backing.contents,
-        message: "Tokens updated successfully",
-      ));
+      if (user?.refreshToken != refreshToken) {
+        return Response.unauthorized(
+            body: AppResponseModel(message: 'Token is not valid'));
+      } else {
+        await _updateTokens(id, managedContext);
+        final User? user = await managedContext.fetchObjectWithID<User>(id);
+        return AppResponse.ok(
+          body: user?.backing.contents,
+          message: "Tokens updated successfully",
+        );
+      }
     } catch (error) {
-      return Response.serverError(
-          body: AppResponseModel(message: error.toString()));
+      return AppResponse.serverError(error, message: 'Refresh token error');
     }
   }
 
   Map<String, dynamic> _getTokens(int id) {
-    //TODO remove when release
-    final key = Platform.environment["SECRET_KEY"] ?? "SECRET_KEY";
+    final key = AppConstants.secretKey;
     final accessClaimSet =
         JwtClaim(maxAge: Duration(hours: 1), otherClaims: {"id": id});
     final refreshClaimSet = JwtClaim(otherClaims: {"id": id});
