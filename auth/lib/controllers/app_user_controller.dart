@@ -43,7 +43,7 @@ class AppUserController extends ResourceController {
         ..values.username = user.username ?? fUser?.username
         ..values.email = user.email ?? fUser?.email;
       await qUserUpdate.updateOne();
-      final uUser = await managedContext.fetchObjectWithID(id);
+      final uUser = await managedContext.fetchObjectWithID<User>(id);
       uUser?.removePropertiesFromBackingMap([
         AppConstants.accessToken,
         AppConstants.refreshToken,
@@ -58,11 +58,34 @@ class AppUserController extends ResourceController {
   }
 
   @Operation.put()
-  Future<Response> updatePassword() async {
+  Future<Response> updatePassword(
+    @Bind.header(HttpHeaders.authorizationHeader) String header,
+    @Bind.query('oldPassword') String oldPassword,
+    @Bind.query('newPassword') String newPassword,
+  ) async {
     try {
-      return AppResponse.ok(message: 'UpdatePassword ');
+      final id = AppUtils.getIdFromHeader(header);
+      final Query<User> qFindUser = Query<User>(managedContext)
+        ..where((table) => table.id).equalTo(id)
+        ..returningProperties((table) => [
+              table.salt,
+              table.hashPassword,
+            ]);
+      final User? user = await qFindUser.fetchOne();
+      final String oldHashPassword =
+          generatePasswordHash(oldPassword, user?.salt ?? '');
+      if (oldHashPassword != user?.hashPassword) {
+        return AppResponse.badRequest(message: 'The password is not correct');
+      }
+      final String newHashPassword =
+          generatePasswordHash(newPassword, user?.salt ?? '');
+      final qUdatePassword = Query<User>(managedContext)
+        ..where((user) => user.id).equalTo(id)
+        ..values.hashPassword = newHashPassword;
+      await qUdatePassword.updateOne();
+      return AppResponse.ok(message: 'Successful password update');
     } catch (error) {
-      return AppResponse.serverError(error);
+      return AppResponse.serverError(error, message: "Error updating password");
     }
   }
 }

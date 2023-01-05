@@ -12,6 +12,12 @@ class AppResponse extends Response {
           message: message,
         ));
 
+  AppResponse.badRequest({String? message})
+      : super.badRequest(
+            body: AppResponseModel(
+          message: message ?? 'Request error',
+        ));
+
   static AppResponseModel _getResponseModel(error, String? message) {
     if (error is QueryException) {
       return AppResponseModel(
