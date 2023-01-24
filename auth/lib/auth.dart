@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:auth/controllers/app_auth_controller.dart';
 import 'package:auth/controllers/app_token_controller.dart';
 import 'package:auth/controllers/app_user_controller.dart';
