@@ -3,7 +3,7 @@ import 'dart:io';
 abstract class AppEnv {
   AppEnv._();
 
-  static final String secretKey = Platform.environment["SERCRET_KEY"] ?? '';
+  static final String secretKey = Platform.environment["SERCRET_KEY"] ?? "";
   static final String port = Platform.environment["PORT"] ?? "";
   static final String dbUsername = Platform.environment["DB_USERNAME"] ?? "";
   static final String dbPassword = Platform.environment["DB_PASSWORD"] ?? "";

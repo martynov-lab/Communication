@@ -10,7 +10,7 @@ services:
     build: ./auth
     container_name: auth
     ports:
-      - 6160:6100
+      - 6100:6100
     environment:
       - SERCRET_KEY=SERCRET_KEY
       - PORT=6100
@@ -57,7 +57,6 @@ services:
       - db_data_vol:/var/lib/postgresql/data/
     networks:
       - internal_net
-    # image: postgres:15.1-alpine
 
 volumes:
   db_auth_vol: {}
