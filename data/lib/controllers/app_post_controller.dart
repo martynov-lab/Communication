@@ -1,5 +1,7 @@
 import 'package:data/utils/app_response.dart';
 import 'package:conduit/conduit.dart';
+import 'package:data/models/post.dart';
+import 'package:data/models/author.dart';
 
 class AppPostController extends ResourceController {
   final ManagedContext managedContext;
