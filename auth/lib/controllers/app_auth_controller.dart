@@ -80,15 +80,6 @@ class AppAuthController extends ResourceController {
     }
   }
 
-  Future<void> _updateTokens(int id, ManagedContext transaction) async {
-    final Map<String, dynamic> tokens = _getTokens(id);
-    final qUpdateTokens = Query<User>(transaction)
-      ..where((user) => user.id).equalTo(id)
-      ..values.accessToken = tokens["access"]
-      ..values.refreshToken = tokens["refresh"];
-    await qUpdateTokens.updateOne();
-  }
-
   @Operation.post("refresh")
   Future<Response> refreshToken(
       @Bind.path("refresh") String refreshToken) async {
@@ -111,11 +102,21 @@ class AppAuthController extends ResourceController {
     }
   }
 
+  Future<void> _updateTokens(int id, ManagedContext transaction) async {
+    final Map<String, dynamic> tokens = _getTokens(id);
+    final qUpdateTokens = Query<User>(transaction)
+      ..where((user) => user.id).equalTo(id)
+      ..values.accessToken = tokens["access"]
+      ..values.refreshToken = tokens["refresh"];
+    await qUpdateTokens.updateOne();
+  }
+
   Map<String, dynamic> _getTokens(int id) {
     final key = AppEnv.secretKey;
     final accessClaimSet =
-        JwtClaim(maxAge: Duration(hours: 1), otherClaims: {"id": id});
-    final refreshClaimSet = JwtClaim(otherClaims: {"id": id});
+        JwtClaim(maxAge: Duration(seconds: 10), otherClaims: {"id": id});
+    final refreshClaimSet =
+        JwtClaim(maxAge: Duration(hours: 24), otherClaims: {"id": id});
     final tokens = <String, dynamic>{};
     tokens["access"] = issueJwtHS256(accessClaimSet, key);
     tokens["refresh"] = issueJwtHS256(refreshClaimSet, key);

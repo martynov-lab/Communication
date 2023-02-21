@@ -17,15 +17,25 @@ class AppPostController extends ResourceController {
     @Bind.body() Post post,
   ) async {
     try {
+      if (post.content == null ||
+          post.content?.isEmpty == true ||
+          post.name == null ||
+          post.name?.isEmpty == true) {
+        return AppResponse.badRequest(
+            message: 'The name and content fields are mandatory');
+      }
       final id = AppUtils.getIdFromHeader(header);
       final author = await managedContext.fetchObjectWithID<Author>(id);
       if (author == null) {
         final qCreateAuthor = Query<Author>(managedContext)..values.id = id;
         qCreateAuthor.insert();
       }
-
+      final int sizePost = post.content?.length ?? 0;
       final qCreatePost = Query<Post>(managedContext)
         ..values.author?.id = id
+        ..values.name = post.name
+        ..values.preContent =
+            post.content?.substring(0, sizePost <= 20 ? sizePost : 20)
         ..values.content = post.content;
       qCreatePost.insert();
 
@@ -43,18 +53,20 @@ class AppPostController extends ResourceController {
   ) async {
     try {
       final currentAuthotId = AppUtils.getIdFromHeader(header);
-      final post = await managedContext.fetchObjectWithID<Post>(id);
+      final qGetPost = Query<Post>(managedContext)
+        ..where((post) => post.id).equalTo(id)
+        ..where((post) => post.author?.id).equalTo(currentAuthotId)
+        ..returningProperties((post) => [post.id, post.name, post.content]);
+      final post = await qGetPost.fetchOne();
       if (post == null) {
         return AppResponse.ok(message: 'This post was not found');
       }
-      if (post.author?.id != currentAuthotId) {
-        return AppResponse.ok(message: 'No access to the post');
-      }
-      post.backing.removeProperty("author");
+
+      // post.backing.removeProperty("author");
 
       return AppResponse.ok(
         body: post.backing.contents,
-        message: 'Posts  successfully created',
+        message: 'Posts fetched  successfully',
       );
     } catch (error) {
       return AppResponse.serverError(error,
