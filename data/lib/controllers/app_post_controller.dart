@@ -56,7 +56,11 @@ class AppPostController extends ResourceController {
       final qGetPost = Query<Post>(managedContext)
         ..where((post) => post.id).equalTo(id)
         ..where((post) => post.author?.id).equalTo(currentAuthotId)
-        ..returningProperties((post) => [post.id, post.name, post.content]);
+        ..returningProperties((post) => [
+              post.id,
+              post.name,
+              post.content,
+            ]);
       final post = await qGetPost.fetchOne();
       if (post == null) {
         return AppResponse.ok(message: 'This post was not found');
