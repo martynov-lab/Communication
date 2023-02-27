@@ -12,18 +12,18 @@ class AppPostController extends ResourceController {
   AppPostController(this.managedContext);
 
   @Operation.post()
-  Future<Response> reatePost(
+  Future<Response> createPost(
     @Bind.header(HttpHeaders.authorizationHeader) String header,
     @Bind.body() Post post,
   ) async {
+    if (post.content == null ||
+        post.content?.isEmpty == true ||
+        post.name == null ||
+        post.name?.isEmpty == true) {
+      return AppResponse.badRequest(
+          message: 'The name and content fields are mandatory');
+    }
     try {
-      if (post.content == null ||
-          post.content?.isEmpty == true ||
-          post.name == null ||
-          post.name?.isEmpty == true) {
-        return AppResponse.badRequest(
-            message: 'The name and content fields are mandatory');
-      }
       final id = AppUtils.getIdFromHeader(header);
       final author = await managedContext.fetchObjectWithID<Author>(id);
       if (author == null) {
@@ -37,8 +37,7 @@ class AppPostController extends ResourceController {
         ..values.preContent =
             post.content?.substring(0, sizePost <= 20 ? sizePost : 20)
         ..values.content = post.content;
-      qCreatePost.insert();
-
+      await qCreatePost.insert();
       return AppResponse.ok(message: 'Posts  successfully created ');
     } catch (error) {
       return AppResponse.serverError(error,
@@ -65,13 +64,8 @@ class AppPostController extends ResourceController {
       if (post == null) {
         return AppResponse.ok(message: 'This post was not found');
       }
-
-      // post.backing.removeProperty("author");
-
       return AppResponse.ok(
-        body: post.backing.contents,
-        message: 'Posts fetched  successfully',
-      );
+          body: post.backing.contents, message: 'Posts fetched  successfully');
     } catch (error) {
       return AppResponse.serverError(error,
           message: 'Error when fetching post by id');
@@ -85,16 +79,12 @@ class AppPostController extends ResourceController {
     try {
       final id = AppUtils.getIdFromHeader(header);
       final qGetPosts = Query<Post>(managedContext)
-        ..where((post) => post.author?.id).equalTo(id);
+        ..where((x) => x.author?.id).equalTo(id);
       final List<Post> posts = await qGetPosts.fetch();
-      if (posts.isEmpty) {
-        return Response.notFound();
-      } else {
-        return Response.ok(posts);
-      }
+      if (posts.isEmpty) return Response.notFound();
+      return Response.ok(posts);
     } catch (error) {
-      return AppResponse.serverError(error,
-          message: 'Error when getting posts');
+      return AppResponse.serverError(error, message: "Ошибка получения постов");
     }
   }
 
@@ -104,25 +94,20 @@ class AppPostController extends ResourceController {
     @Bind.path("id") int id,
   ) async {
     try {
-      final currentAuthotId = AppUtils.getIdFromHeader(header);
+      final currentAuthorId = AppUtils.getIdFromHeader(header);
       final post = await managedContext.fetchObjectWithID<Post>(id);
       if (post == null) {
-        return AppResponse.ok(message: 'This post was not found');
+        return AppResponse.ok(message: "Пост не найден");
       }
-      if (post.author?.id != currentAuthotId) {
-        return AppResponse.ok(message: 'No access to the post');
+      if (post.author?.id != currentAuthorId) {
+        return AppResponse.ok(message: "Нет доступа к посту");
       }
       final qDeletePost = Query<Post>(managedContext)
-        ..where((post) => post.id).equalTo(id);
-
+        ..where((x) => x.id).equalTo(id);
       await qDeletePost.delete();
-
-      return AppResponse.ok(
-        message: 'Post successfully deleted',
-      );
+      return AppResponse.ok(message: "Успешное удаление поста");
     } catch (error) {
-      return AppResponse.serverError(error,
-          message: 'Error when deleting post');
+      return AppResponse.serverError(error, message: "Ошибка удаления поста");
     }
   }
 }

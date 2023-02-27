@@ -17,6 +17,7 @@ services:
       - DB_HOST=db_auth
       - DB_PORT=6101
       - DB_NAME=postgres
+      - TIME=10
     depends_on:
       - db_auth
     networks:
@@ -25,6 +26,7 @@ services:
       - auth_vol:/app/
 
   db_auth:
+    restart: on-failure
     container_name: db_auth
     ports:
       - "6101:6101"
@@ -42,6 +44,7 @@ services:
       - internal_net
 
   db_data:
+    restart: on-failure
     container_name: db_data
     ports:
       - "6201:6201"
@@ -59,6 +62,7 @@ services:
       - internal_net
 
   data:
+    restart: on-failure
     build: ./data
     container_name: data
     environment:
@@ -77,6 +81,7 @@ services:
       - data_vol:/app/
 
   nginx:
+    restart: on-failure
     container_name: nginx
     image: nginx:1.23.1-alpine
     networks:
