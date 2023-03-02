@@ -75,13 +75,17 @@ class AppPostController extends ResourceController {
   @Operation.get()
   Future<Response> getPosts(
     @Bind.header(HttpHeaders.authorizationHeader) String header,
+    @Bind.query("fetchLimit") int fetchLimit,
+    @Bind.query("offset") int offset,
   ) async {
     try {
       final id = AppUtils.getIdFromHeader(header);
       final qGetPosts = Query<Post>(managedContext)
-        ..where((x) => x.author?.id).equalTo(id);
+        ..where((x) => x.author?.id).equalTo(id)
+        ..fetchLimit = fetchLimit
+        ..offset = offset;
       final List<Post> posts = await qGetPosts.fetch();
-      if (posts.isEmpty) return Response.notFound();
+      if (posts.isEmpty) return AppResponse.ok(message: "Посты не найдены");
       return Response.ok(posts);
     } catch (error) {
       return AppResponse.serverError(error, message: "Ошибка получения постов");
