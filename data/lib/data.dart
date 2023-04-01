@@ -1,7 +1,8 @@
+import 'package:conduit_core/conduit_core.dart';
+import 'package:conduit_postgresql/conduit_postgresql.dart';
 import 'package:data/controllers/app_post_controller.dart';
 import 'package:data/controllers/app_token_controller.dart';
 import 'package:data/utils/app_env.dart';
-import 'package:conduit/conduit.dart';
 
 class AppService extends ApplicationChannel {
   late final ManagedContext managedContext;

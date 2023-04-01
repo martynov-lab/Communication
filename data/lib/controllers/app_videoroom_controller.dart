@@ -12,7 +12,7 @@ class AppPostController extends ResourceController {
   AppPostController(this.managedContext);
 
   @Operation.post()
-  Future<Response> createPost(
+  Future<Response> createRoom(
     @Bind.header(HttpHeaders.authorizationHeader) String header,
     @Bind.body() Post post,
   ) async {

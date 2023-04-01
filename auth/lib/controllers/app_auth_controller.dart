@@ -2,7 +2,7 @@ import 'package:auth/models/response_model.dart';
 import 'package:auth/models/user.dart';
 import 'package:auth/utils/app_response.dart';
 import 'package:auth/utils/app_utils.dart';
-import 'package:conduit/conduit.dart';
+import 'package:conduit_core/conduit_core.dart';
 import 'package:jaguar_jwt/jaguar_jwt.dart';
 
 import '../utils/app_env.dart';
