@@ -6,13 +6,13 @@ import 'package:data/models/post.dart';
 import 'package:data/models/author.dart';
 import 'package:data/utils/app_utils.dart';
 
-class AppPostController extends ResourceController {
+class AppRoomController extends ResourceController {
   final ManagedContext managedContext;
 
-  AppPostController(this.managedContext);
+  AppRoomController(this.managedContext);
 
   @Operation.post()
-  Future<Response> createPost(
+  Future<Response> createRoom(
     @Bind.header(HttpHeaders.authorizationHeader) String header,
     @Bind.body() Post post,
   ) async {
@@ -46,7 +46,7 @@ class AppPostController extends ResourceController {
   }
 
   @Operation.get("id")
-  Future<Response> getPost(
+  Future<Response> getRoom(
     @Bind.header(HttpHeaders.authorizationHeader) String header,
     @Bind.path("id") int id,
   ) async {
@@ -73,7 +73,7 @@ class AppPostController extends ResourceController {
   }
 
   @Operation.get()
-  Future<Response> getPosts(
+  Future<Response> getRooms(
     @Bind.header(HttpHeaders.authorizationHeader) String header,
     @Bind.query("fetchLimit") int fetchLimit,
     @Bind.query("offset") int offset,
@@ -93,7 +93,7 @@ class AppPostController extends ResourceController {
   }
 
   @Operation.delete("id")
-  Future<Response> deletePost(
+  Future<Response> deleteRoom(
     @Bind.header(HttpHeaders.authorizationHeader) String header,
     @Bind.path("id") int id,
   ) async {

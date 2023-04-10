@@ -1,25 +1,41 @@
 import 'package:conduit_core/conduit_core.dart';
 import 'package:conduit_postgresql/conduit_postgresql.dart';
-import 'package:data/controllers/app_post_controller.dart';
-import 'package:data/controllers/app_token_controller.dart';
 import 'package:data/utils/app_env.dart';
+
+import 'controllers/app_websocket_controller.dart';
+import 'models/signal.dart';
 
 class AppService extends ApplicationChannel {
   late final ManagedContext managedContext;
+  late final Signal signal;
 
   @override
   Future prepare() {
+    logger.onRecord.listen((rec) {
+      print("$rec ${rec.error ?? ""} ${rec.stackTrace ?? ""}");
+    });
+    signal = Signal(messageHub);
     final persistentStore = _initDatabase();
     managedContext = ManagedContext(
         ManagedDataModel.fromCurrentMirrorSystem(), persistentStore);
+
+    messageHub.listen((event) {
+      Map<String, dynamic> message = event;
+
+      switch (message["event"]) {
+        case "broadcast":
+          signal.sendBytesToAllConnections(message["data"]);
+      }
+    });
     return super.prepare();
   }
 
   @override
   Controller get entryPoint => Router()
-    ..route("posts/[:id]")
-        .link(() => AppTokenController())!
-        .link(() => AppPostController(managedContext));
+    // ..route("room")
+    //     .link(() => AppTokenController())!
+    //     .link(() => AppRoomController(managedContext))
+    ..route("signal").link(() => AppWebsocketController(signal));
 
   PostgreSQLPersistentStore _initDatabase() {
     return PostgreSQLPersistentStore(
