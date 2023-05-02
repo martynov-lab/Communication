@@ -1,7 +1,9 @@
 import 'package:conduit_core/conduit_core.dart';
 import 'package:conduit_postgresql/conduit_postgresql.dart';
+import 'package:data/controllers/app_room_controller.dart';
 import 'package:data/utils/app_env.dart';
 
+import 'controllers/app_token_controller.dart';
 import 'controllers/app_websocket_controller.dart';
 import 'models/signal.dart';
 
@@ -32,10 +34,12 @@ class AppService extends ApplicationChannel {
 
   @override
   Controller get entryPoint => Router()
-    // ..route("room")
-    //     .link(() => AppTokenController())!
-    //     .link(() => AppRoomController(managedContext))
-    ..route("signal").link(() => AppWebsocketController(signal));
+        ..route("meeting/[:id]")
+            .link(() => AppTokenController())!
+            .link(() => AppRoomController(managedContext))
+
+      // ..route("signal").link(() => AppWebsocketController(signal))
+      ;
 
   PostgreSQLPersistentStore _initDatabase() {
     return PostgreSQLPersistentStore(

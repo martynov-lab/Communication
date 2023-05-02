@@ -10,6 +10,12 @@ class _User {
   String? username;
   @Column(unique: true, indexed: true)
   String? email;
+  @Column(nullable: true)
+  String? firstname;
+  @Column(nullable: true)
+  String? surname;
+  @Column(nullable: true)
+  String? patronymic;
   @Serialize(input: true, output: false)
   String? password;
   @Column(nullable: true)

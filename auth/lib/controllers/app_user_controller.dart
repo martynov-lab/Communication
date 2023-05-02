@@ -10,7 +10,7 @@ class AppUserController extends ResourceController {
   final ManagedContext managedContext;
 
   AppUserController(this.managedContext);
-  @Operation.get()
+  @Operation.get("info")
   Future<Response> getProfile(
       @Bind.header(HttpHeaders.authorizationHeader) String header) async {
     try {
@@ -30,7 +30,7 @@ class AppUserController extends ResourceController {
     }
   }
 
-  @Operation.post()
+  @Operation.put("profile")
   Future<Response> updateProfile(
     @Bind.header(HttpHeaders.authorizationHeader) String header,
     @Bind.body() User user,
@@ -57,7 +57,7 @@ class AppUserController extends ResourceController {
     }
   }
 
-  @Operation.put()
+  @Operation.put("password")
   Future<Response> updatePassword(
     @Bind.header(HttpHeaders.authorizationHeader) String header,
     @Bind.query('oldPassword') String oldPassword,

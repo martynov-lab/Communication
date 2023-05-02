@@ -11,7 +11,7 @@ class AppRoomController extends ResourceController {
 
   AppRoomController(this.managedContext);
 
-  @Operation.post()
+  @Operation.post("create")
   Future<Response> createRoom(
     @Bind.header(HttpHeaders.authorizationHeader) String header,
     @Bind.body() Post post,
